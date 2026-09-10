@@ -8,17 +8,83 @@ datasource db {
 }
 
 model User {
-  id             String          @id @default(cuid())
-  name           String
-  email          String          @unique
-  password       String
-  role           Role            @default(MEMBER)
-  events         Event[]
-  donations      Donation[]
+  id            String        @id @default(cuid())
+  name          String
+  email         String        @unique
+  password      String?       // null if OAuth-only
+  phone         String?
+  photo         String?
+  role          Role          @default(GUEST)
+  skills        String[]      @default([])
+  birthday      DateTime?
+  joinDate      DateTime      @default(now())
+  isPastor      Boolean       @default(false)
+  isActive      Boolean       @default(true)
+  provider      String        @default("credentials") // "credentials" | "google"
+  events        Event[]
+  donations     Donation[]
   volunteerRoles VolunteerRole[]
-  createdAt      DateTime        @default(now())
+  accounts      Account[]
+  sessions      Session[]
+  auditLogs     AuditLog[]    @relation("ActorLogs")
+  targetLogs    AuditLog[]    @relation("TargetLogs")
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
 
   @@index([email])
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  action     String   // "ROLE_CHANGED", "USER_CREATED", "USER_DELETED", "LOGIN", "LOGOUT", "DONATION_VIEWED", etc.
+  targetId   String
+  targetName String
+  actorId    String
+  actorName  String
+  details    Json?
+  ip         String?
+  createdAt  DateTime @default(now())
+
+  actor      User     @relation("ActorLogs", fields: [actorId], references: [id])
+  target     User?    @relation("TargetLogs", fields: [targetId], references: [id])
+
+  @@index([action, createdAt])
+  @@index([actorId])
+  @@index([targetId])
 }
 
 model Attendee {
@@ -92,9 +158,15 @@ model VolunteerRole {
 }
 
 enum Role {
+  SUPER_ADMIN
   ADMIN
   PASTOR
+  ELDER
+  DEACON
+  MINISTRY_LEAD
+  COUNSELOR
   MEMBER
+  GUEST
 }
 
 enum DonationType {

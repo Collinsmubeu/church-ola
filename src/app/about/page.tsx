@@ -9,9 +9,10 @@ export const metadata: Metadata = {
 };
 
 export default async function AboutPage() {
-  const [members, volunteerRoles] = await Promise.all([
+  const [members, volunteerRoles, sermonCount] = await Promise.all([
     prisma.user.count(),
     prisma.volunteerRole.findMany({ include: { user: true } }),
+    prisma.sermon.count(),
   ]);
 
   return (
@@ -28,7 +29,7 @@ export default async function AboutPage() {
           {[
             { icon: Users, label: "Members", value: members },
             { icon: Heart, label: "Volunteers", value: volunteerRoles.length },
-            { icon: BookOpen, label: "Sermons", value: "100+" },
+            { icon: BookOpen, label: "Sermons", value: sermonCount },
           ].map((stat) => (
             <Card key={stat.label}>
               <CardContent className="p-6 text-center">

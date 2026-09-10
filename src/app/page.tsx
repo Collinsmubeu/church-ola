@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 };
 
 export default async function HomePage() {
-  const [events, latestSermon] = await Promise.all([
+  const [events, latestSermon, memberCount, sermonCount, donationCount] = await Promise.all([
     prisma.event.findMany({
       where: { date: { gte: new Date() } },
       include: { attendees: true },
@@ -20,6 +20,9 @@ export default async function HomePage() {
       take: 3,
     }),
     prisma.sermon.findFirst({ orderBy: { date: "desc" } }),
+    prisma.user.count(),
+    prisma.sermon.count(),
+    prisma.donation.count(),
   ]);
 
   return (
@@ -57,10 +60,10 @@ export default async function HomePage() {
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {[
-              { icon: Users, label: "Members", value: "500+" },
-              { icon: Heart, label: "Donations", value: "Weekly" },
-              { icon: Calendar, label: "Events", value: "Monthly" },
-              { icon: Church, label: "Teams", value: "8+" },
+              { icon: Users, label: "Members", value: memberCount },
+              { icon: Heart, label: "Donations", value: donationCount },
+              { icon: Calendar, label: "Events", value: events.length },
+              { icon: Church, label: "Sermons", value: sermonCount },
             ].map((stat) => (
               <div key={stat.label} className="text-center">
                 <stat.icon className="size-8 mx-auto mb-3 text-primary" />
