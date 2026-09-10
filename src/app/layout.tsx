@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Noto_Sans, Playfair_Display } from "next/font/google";
 import "./globals.css";
-import { ThemeProvider } from "next-themes";
+import { Providers } from "@/components/providers";
 import { cn } from "@/lib/utils";
 
 const playfairDisplayHeading = Playfair_Display({
@@ -27,13 +27,13 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Church Ola | Deep Faith. True Community.",
+  title: "Church Ola | Your church, connected.",
   description:
     "Church Ola is a contemporary community church welcoming everyone. Join us for worship, small groups, sermons, and serving our city.",
   keywords: ["church", "community", "worship", "sermons", "events", "faith"],
   openGraph: {
     title: "Church Ola",
-    description: "Deep Faith. True Community.",
+    description: "Your church, connected.",
     type: "website",
   },
 };
@@ -56,14 +56,7 @@ export default function RootLayout({
       )}
     >
       <body className="min-h-full flex flex-col font-sans">
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          {children}
-        </ThemeProvider>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

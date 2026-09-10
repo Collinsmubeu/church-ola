@@ -22,7 +22,7 @@ export const authOptions: NextAuthConfig = {
           where: { email },
         });
 
-        if (!user) {
+        if (!user || !user.password) {
           throw new Error("No account found with that email");
         }
 

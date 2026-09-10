@@ -4,7 +4,7 @@ import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/db/client";
-import { logAudit } from "@/lib/actions/audit";
+import type { Role } from "@prisma/client";
 
 export const authOptions: NextAuthConfig = {
   providers: [
@@ -57,14 +57,14 @@ export const authOptions: NextAuthConfig = {
               name: user.name ?? "Church Member",
               email: user.email,
               photo: user.image ?? undefined,
-              role: "GUEST",
+              role: "GUEST" as Role,
               provider: "google",
             },
           });
         } else if (!existing.provider || existing.provider === "credentials") {
           await prisma.user.update({
             where: { email: user.email },
-            data: { provider: "google", photo: user.image ?? existing.photo },
+            data: { provider: "google", photo: user.image ?? existing.photo ?? undefined },
           });
         }
       }
