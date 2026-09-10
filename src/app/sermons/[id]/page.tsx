@@ -7,9 +7,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Calendar, Clock, User, Share2, Volume2 } from "lucide-react";
 import { format } from "date-fns";
+import PublicLayout from "@/components/layouts/PublicLayout";
 
 interface PageProps {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 export const metadata: Metadata = {
@@ -17,7 +18,8 @@ export const metadata: Metadata = {
 };
 
 export default async function SermonDetailPage({ params }: PageProps) {
-  const sermon = await prisma.sermon.findUnique({ where: { id: params.id } });
+  const { id } = await params;
+  const sermon = await prisma.sermon.findUnique({ where: { id } });
   if (!sermon) notFound();
 
   const related = await prisma.sermon.findMany({
@@ -29,8 +31,9 @@ export default async function SermonDetailPage({ params }: PageProps) {
   const sermonDate = new Date(sermon.date);
 
   return (
-    <div className="container mx-auto px-4 py-12">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <PublicLayout>
+      <div className="container mx-auto px-4 py-12">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-6">
           <div>
             <Badge className="mb-4">Sermon</Badge>
@@ -85,5 +88,6 @@ export default async function SermonDetailPage({ params }: PageProps) {
         </div>
       </div>
     </div>
+    </PublicLayout>
   );
 }

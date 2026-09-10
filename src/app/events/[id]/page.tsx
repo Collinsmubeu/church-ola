@@ -7,9 +7,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, Clock, MapPin, Users, Church } from "lucide-react";
 import { format } from "date-fns";
+import PublicLayout from "@/components/layouts/PublicLayout";
 
 interface PageProps {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 export const metadata: Metadata = {
@@ -17,8 +18,9 @@ export const metadata: Metadata = {
 };
 
 export default async function EventDetailPage({ params }: PageProps) {
+  const { id } = await params;
   const event = await prisma.event.findUnique({
-    where: { id: params.id },
+    where: { id },
     include: { attendees: true, createdBy: true },
   });
 
@@ -37,8 +39,9 @@ export default async function EventDetailPage({ params }: PageProps) {
   });
 
   return (
-    <div className="container mx-auto px-4 py-12">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <PublicLayout>
+      <div className="container mx-auto px-4 py-12">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-6">
           <div>
             <Badge className="mb-4">Event</Badge>
@@ -125,5 +128,6 @@ export default async function EventDetailPage({ params }: PageProps) {
         </div>
       )}
     </div>
+    </PublicLayout>
   );
 }
