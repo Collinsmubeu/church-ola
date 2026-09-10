@@ -37,6 +37,8 @@ const config: Config = {
       fontFamily: {
         display: ['var(--font-playfair)', 'serif'],
         body: ['var(--font-inter)', 'sans-serif'],
+        heading: ['var(--font-playfair)', 'serif'],
+        sans: ['var(--font-inter)', 'sans-serif'],
       },
       animation: {
         'fade-in': 'fadeIn 600ms ease-out',
