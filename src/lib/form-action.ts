@@ -1,4 +1,4 @@
-type AnyFn = (...args: any[]) => Promise<any> | any;
+type AnyFn = (...args: readonly unknown[]) => unknown;
 
 export function asFormAction<T extends AnyFn>(fn: T): (formData: FormData) => void {
   return (formData: FormData) => {
