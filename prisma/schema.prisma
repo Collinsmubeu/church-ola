@@ -1,0 +1,104 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String          @id @default(cuid())
+  name           String
+  email          String          @unique
+  password       String
+  role           Role            @default(MEMBER)
+  events         Event[]
+  donations      Donation[]
+  volunteerRoles VolunteerRole[]
+  createdAt      DateTime        @default(now())
+
+  @@index([email])
+}
+
+model Attendee {
+  id        String   @id @default(cuid())
+  name      String
+  email     String?
+  eventId   String
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@index([eventId])
+}
+
+model Event {
+  id          String     @id @default(cuid())
+  title       String
+  description String
+  date        DateTime
+  time        String
+  location    String
+  capacity    Int?
+  createdBy   User?      @relation(fields: [createdById], references: [id])
+  createdById String?
+  attendees   Attendee[]
+  createdAt   DateTime   @default(now())
+
+  @@index([date])
+  @@index([createdById])
+}
+
+model Sermon {
+  id          String    @id @default(cuid())
+  title       String
+  description String?
+  videoUrl    String
+  audioUrl    String?
+  speaker     String
+  date        DateTime
+  duration    Int? // seconds
+  createdAt   DateTime  @default(now())
+
+  @@index([date])
+  @@index([speaker])
+}
+
+model Donation {
+  id        String       @id @default(cuid())
+  amount    Float
+  currency  String       @default("USD")
+  type      DonationType @default(ONE_TIME)
+  note      String?
+  donor     User?        @relation(fields: [donorId], references: [id])
+  donorId   String?
+  createdAt DateTime      @default(now())
+
+  @@index([createdAt])
+  @@index([donorId])
+}
+
+model VolunteerRole {
+  id        String   @id @default(cuid())
+  team      String
+  role      String
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@unique([userId, team])
+}
+
+enum Role {
+  ADMIN
+  PASTOR
+  MEMBER
+}
+
+enum DonationType {
+  ONE_TIME
+  RECURRING
+  OFFERING
+}

@@ -1,69 +1,153 @@
-import Image from "next/image";
+import { Metadata } from "next";
+import { prisma } from "@/lib/db/client";
+import { Button } from "@/components/ui/button";
+import { EventCard } from "@/components/features/events/EventCard";
+import { SermonCard } from "@/components/features/sermons/SermonCard";
+import { Church, ArrowRight, Users, Heart, Calendar, Play } from "lucide-react";
+import Link from "next/link";
+import PublicLayout from "@/components/layouts/PublicLayout";
 
-export default function Home() {
+export const metadata: Metadata = {
+  title: "Church Ola | Deep Faith. True Community.",
+};
+
+export default async function HomePage() {
+  const [events, latestSermon] = await Promise.all([
+    prisma.event.findMany({
+      where: { date: { gte: new Date() } },
+      include: { attendees: true },
+      orderBy: { date: "asc" },
+      take: 3,
+    }),
+    prisma.sermon.findFirst({ orderBy: { date: "desc" } }),
+  ]);
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <PublicLayout>
+      <section className="relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-background to-accent/10" />
+        <div className="container mx-auto px-4 py-24 md:py-32 relative">
+          <div className="max-w-3xl">
+            <h1 className="font-heading text-5xl md:text-7xl font-bold tracking-tight leading-tight">
+              Welcome Home.<br />
+              <span className="text-primary">Deep Faith.</span><br />
+              True Community.
+            </h1>
+            <p className="mt-6 text-lg md:text-xl text-muted-foreground max-w-2xl">
+              Church Ola is a welcoming community where everyone belongs. Join us
+              for worship, small groups, and serving our city together.
+            </p>
+            <div className="mt-10 flex flex-wrap gap-4">
+              <Link href="/events">
+                <Button size="lg" className="gap-2">
+                  <Calendar className="size-5" /> Join Us This Sunday
+                </Button>
+              </Link>
+              <Link href="/sermons">
+                <Button size="lg" variant="outline" className="gap-2">
+                  <Play className="size-5" /> Watch Live
+                </Button>
+              </Link>
+            </div>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      </section>
+
+      <section className="py-20 bg-muted/30">
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            {[
+              { icon: Users, label: "Members", value: "500+" },
+              { icon: Heart, label: "Donations", value: "Weekly" },
+              { icon: Calendar, label: "Events", value: "Monthly" },
+              { icon: Church, label: "Teams", value: "8+" },
+            ].map((stat) => (
+              <div key={stat.label} className="text-center">
+                <stat.icon className="size-8 mx-auto mb-3 text-primary" />
+                <div className="font-heading text-3xl font-bold">{stat.value}</div>
+                <div className="text-sm text-muted-foreground">{stat.label}</div>
+              </div>
+            ))}
+          </div>
         </div>
-      </main>
-    </div>
+      </section>
+
+      <section className="py-20">
+        <div className="container mx-auto px-4">
+          <div className="flex items-center justify-between mb-10">
+            <h2 className="font-heading text-3xl md:text-4xl font-bold">Upcoming Events</h2>
+            <Link href="/events">
+              <Button variant="ghost" className="gap-2">
+                View all <ArrowRight className="size-4" />
+              </Button>
+            </Link>
+          </div>
+          {events.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {events.map((event) => (
+                <EventCard key={event.id} event={event} />
+              ))}
+            </div>
+          ) : (
+            <p className="text-muted-foreground text-center py-12">
+              No upcoming events at the moment. Check back soon!
+            </p>
+          )}
+        </div>
+      </section>
+
+      {latestSermon && (
+        <section className="py-20 bg-muted/30">
+          <div className="container mx-auto px-4">
+            <div className="flex items-center justify-between mb-10">
+              <h2 className="font-heading text-3xl md:text-4xl font-bold">Latest Sermon</h2>
+              <Link href="/sermons">
+                <Button variant="ghost" className="gap-2">
+                  All sermons <ArrowRight className="size-4" />
+                </Button>
+              </Link>
+            </div>
+            <div className="max-w-2xl">
+              <SermonCard sermon={latestSermon} />
+            </div>
+          </div>
+        </section>
+      )}
+
+      <section className="py-20">
+        <div className="container mx-auto px-4">
+          <h2 className="font-heading text-3xl md:text-4xl font-bold text-center mb-12">
+            Get Involved
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {[
+              {
+                icon: Users,
+                title: "Small Groups",
+                desc: "Connect with others in community groups that meet throughout the week.",
+              },
+              {
+                icon: Heart,
+                title: "Give Online",
+                desc: "Support the mission of Church Ola with secure online giving.",
+              },
+              {
+                icon: Church,
+                title: "Serve Our City",
+                desc: "Use your gifts to serve our church and local community.",
+              },
+            ].map((item) => (
+              <div key={item.title} className="text-center">
+                <div className="size-16 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
+                  <item.icon className="size-8 text-primary" />
+                </div>
+                <h3 className="font-heading text-xl font-semibold mb-2">{item.title}</h3>
+                <p className="text-muted-foreground">{item.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    </PublicLayout>
   );
 }
