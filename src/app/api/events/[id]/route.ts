@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db/client";
+import { requirePermission, handleAuthError } from "@/lib/auth-guard";
 
 export async function GET(
   request: Request,
@@ -28,6 +29,7 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    await requirePermission("event:edit");
     const { id } = await params;
     const body = await request.json();
     const event = await prisma.event.update({
@@ -44,10 +46,7 @@ export async function PUT(
     });
     return NextResponse.json(event);
   } catch (error) {
-    return NextResponse.json(
-      { error: "Failed to update event" },
-      { status: 500 }
-    );
+    return handleAuthError(error);
   }
 }
 
@@ -56,13 +55,11 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    await requirePermission("event:delete");
     const { id } = await params;
     await prisma.event.delete({ where: { id } });
     return NextResponse.json({ success: true });
   } catch (error) {
-    return NextResponse.json(
-      { error: "Failed to delete event" },
-      { status: 500 }
-    );
+    return handleAuthError(error);
   }
 }

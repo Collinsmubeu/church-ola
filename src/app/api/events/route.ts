@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db/client";
 import { getEvents } from "@/lib/db/queries/events";
+import { requirePermission, handleAuthError } from "@/lib/auth-guard";
 
 export async function GET(request: Request) {
   try {
@@ -19,6 +20,7 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
+    await requirePermission("event:create");
     const body = await request.json();
     const event = await prisma.event.create({
       data: {
@@ -33,9 +35,6 @@ export async function POST(request: Request) {
     });
     return NextResponse.json(event, { status: 201 });
   } catch (error) {
-    return NextResponse.json(
-      { error: "Failed to create event" },
-      { status: 500 }
-    );
+    return handleAuthError(error);
   }
 }

@@ -4,7 +4,25 @@ import { useState } from "react";
 import { signOut } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
-import { Menu, Church, Users, Calendar, Heart, Music, HandHeart, LogOut, X } from "lucide-react";
+import { Can } from "@/components/Can";
+import {
+  Menu,
+  Church,
+  Users,
+  Calendar,
+  Heart,
+  Music,
+  HandHeart,
+  LogOut,
+  X,
+  Shield,
+  BarChart3,
+  Settings,
+  FolderOpen,
+  DollarSign,
+  UserCheck,
+  Megaphone,
+} from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -15,11 +33,15 @@ interface User {
 }
 
 const navItems = [
-  { href: "/dashboard", label: "Overview", icon: Calendar },
-  { href: "/dashboard/events", label: "Events", icon: Calendar },
-  { href: "/dashboard/sermons", label: "Sermons", icon: Music },
-  { href: "/dashboard/donations", label: "Donations", icon: Heart },
-  { href: "/dashboard/volunteers", label: "Volunteers", icon: HandHeart },
+  { href: "/dashboard", label: "Overview", icon: BarChart3, action: null },
+  { href: "/dashboard/events", label: "Events", icon: Calendar, action: "event:create" },
+  { href: "/dashboard/sermons", label: "Sermons", icon: Music, action: "sermon:upload" },
+  { href: "/dashboard/donations", label: "Donations", icon: Heart, action: "giving:viewAll" },
+  { href: "/dashboard/volunteers", label: "Volunteers", icon: HandHeart, action: "group:viewRoster" },
+  { href: "/dashboard/members", label: "Members", icon: Users, action: "user:create" },
+  { href: "/dashboard/announcements", label: "Announcements", icon: Megaphone, action: "announcement:publish" },
+  { href: "/dashboard/reports", label: "Reports", icon: FolderOpen, action: "reports:financial" },
+  { href: "/dashboard/settings", label: "Settings", icon: Settings, action: "settings:edit" },
 ];
 
 export function DashboardSidebar({ user }: { user: User }) {
@@ -44,11 +66,11 @@ export function DashboardSidebar({ user }: { user: User }) {
             <span className="font-heading text-xl font-bold">Church Ola</span>
           </Link>
         </div>
-        <nav className="flex-1 p-4 space-y-1">
+        <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = pathname === item.href;
-            return (
+            const link = (
               <Link
                 key={item.href}
                 href={item.href}
@@ -61,6 +83,13 @@ export function DashboardSidebar({ user }: { user: User }) {
                 <Icon className="size-5" /> {item.label}
               </Link>
             );
+            return item.action ? (
+              <Can key={item.href} action={item.action}>
+                {link}
+              </Can>
+            ) : (
+              link
+            );
           })}
         </nav>
         <div className="p-4 border-t border-border">
@@ -68,8 +97,8 @@ export function DashboardSidebar({ user }: { user: User }) {
             <p className="text-sm font-medium truncate">{user?.name}</p>
             <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
             {user?.role && (
-              <p className="text-xs text-muted-foreground capitalize mt-1">
-                {user.role.toLowerCase()}
+              <p className="text-xs text-muted-foreground capitalize mt-1 flex items-center gap-1">
+                <Shield className="size-3" /> {user.role.toLowerCase().replace("_", " ")}
               </p>
             )}
           </div>
@@ -93,11 +122,11 @@ export function DashboardSidebar({ user }: { user: User }) {
               <X className="size-5" />
             </Button>
           </div>
-          <nav className="p-4 space-y-1">
+          <nav className="p-4 space-y-1 overflow-y-auto">
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = pathname === item.href;
-              return (
+              const link = (
                 <Link
                   key={item.href}
                   href={item.href}
@@ -110,6 +139,13 @@ export function DashboardSidebar({ user }: { user: User }) {
                 >
                   <Icon className="size-5" /> {item.label}
                 </Link>
+              );
+              return item.action ? (
+                <Can key={item.href} action={item.action}>
+                  {link}
+                </Can>
+              ) : (
+                link
               );
             })}
           </nav>

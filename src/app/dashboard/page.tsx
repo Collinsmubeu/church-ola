@@ -2,9 +2,10 @@ import { Metadata } from "next";
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db/client";
+import { can, Role } from "@/lib/permissions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Users, Calendar, Heart, Music, HandHeart, ArrowRight, Clock } from "lucide-react";
+import { Users, Calendar, Heart, Music, HandHeart, ArrowRight, Clock, Shield } from "lucide-react";
 import Link from "next/link";
 import { format } from "date-fns";
 
@@ -16,8 +17,11 @@ export default async function DashboardOverview() {
   const session = await auth();
   if (!session) redirect("/auth/login");
 
+  const user = session.user as { id?: string; role?: Role; name?: string | null };
+  const userRole = (user?.role || "GUEST") as Role;
+
   const [userCount, events, sermons, donations, recentDonations] = await Promise.all([
-    prisma.user.count(),
+    can(userRole, "user:create") ? prisma.user.count() : Promise.resolve(0),
     prisma.event.findMany({
       where: { date: { gte: new Date() } },
       include: { attendees: true },
@@ -25,19 +29,21 @@ export default async function DashboardOverview() {
       take: 5,
     }),
     prisma.sermon.count(),
-    prisma.donation.count(),
-    prisma.donation.findMany({
-      include: { donor: true },
-      orderBy: { createdAt: "desc" },
-      take: 5,
-    }),
+    can(userRole, "giving:viewAll") ? prisma.donation.count() : Promise.resolve(0),
+    can(userRole, "giving:viewAll")
+      ? prisma.donation.findMany({
+          include: { donor: true },
+          orderBy: { createdAt: "desc" },
+          take: 5,
+        })
+      : Promise.resolve([]),
   ]);
 
   const stats = [
-    { label: "Total Members", value: userCount, icon: Users, color: "text-primary" },
-    { label: "Upcoming Events", value: events.length, icon: Calendar, color: "text-primary" },
-    { label: "Total Sermons", value: sermons, icon: Music, color: "text-primary" },
-    { label: "Donations", value: donations, icon: Heart, color: "text-primary" },
+    { label: "Total Members", value: userCount, icon: Users, color: "text-primary", show: can(userRole, "user:create") },
+    { label: "Upcoming Events", value: events.length, icon: Calendar, color: "text-primary", show: true },
+    { label: "Total Sermons", value: sermons, icon: Music, color: "text-primary", show: true },
+    { label: "Donations", value: donations, icon: Heart, color: "text-primary", show: can(userRole, "giving:viewAll") },
   ];
 
   return (
@@ -47,10 +53,13 @@ export default async function DashboardOverview() {
         <p className="text-muted-foreground mt-1">
           Welcome back, {session.user?.name}. Here is what is happening at Church Ola.
         </p>
+        <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+          <Shield className="size-3" /> Your role: {userRole.toLowerCase().replace("_", " ")}
+        </p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {stats.map((stat) => (
+        {stats.filter(s => s.show).map((stat) => (
           <Card key={stat.label}>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -115,7 +124,7 @@ export default async function DashboardOverview() {
                 ))}
               </ul>
             ) : (
-              <p className="text-muted-foreground text-sm">No donations yet.</p>
+              <p className="text-muted-foreground text-sm">No donation data available.</p>
             )}
           </CardContent>
         </Card>
@@ -126,12 +135,12 @@ export default async function DashboardOverview() {
           <Card className="hover:shadow-lg transition-shadow h-full">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Calendar className="size-5 text-primary" /> Manage Events
+                <Calendar className="size-5 text-primary" /> Events
               </CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground">
-                Create, edit, and manage church events and RSVPs.
+                Browse and register for church events.
               </p>
             </CardContent>
           </Card>
@@ -140,12 +149,12 @@ export default async function DashboardOverview() {
           <Card className="hover:shadow-lg transition-shadow h-full">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Music className="size-5 text-primary" /> Manage Sermons
+                <Music className="size-5 text-primary" /> Sermons
               </CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground">
-                Upload sermons, set speakers, and organize your archive.
+                Listen to recent messages and the archive.
               </p>
             </CardContent>
           </Card>
@@ -154,12 +163,12 @@ export default async function DashboardOverview() {
           <Card className="hover:shadow-lg transition-shadow h-full">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Heart className="size-5 text-primary" /> Manage Donations
+                <Heart className="size-5 text-primary" /> Give
               </CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground">
-                View donation history and export CSV reports.
+                Make a donation or view your giving history.
               </p>
             </CardContent>
           </Card>
