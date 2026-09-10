@@ -6,7 +6,8 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Church, Menu, X } from "lucide-react";
-import { Suspense } from "react";
+import { Suspense, useEffect } from "react";
+import { useSession, signOut } from "next-auth/react";
 
 const navLinks = [
   { href: "/", label: "Home" },
@@ -20,6 +21,14 @@ const navLinks = [
 
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
+  const { data: session, status } = useSession();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const isLoggedIn = mounted && status === "authenticated" && session?.user;
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -46,11 +55,19 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
             <Suspense fallback={<div className="size-9" />}>
               <ThemeToggle />
             </Suspense>
-            <Link href="/auth/login" className="hidden sm:inline-flex">
-              <Button variant="ghost" size="sm">
-                Member Login
-              </Button>
-            </Link>
+            {isLoggedIn ? (
+              <Link href="/dashboard" className="hidden sm:inline-flex">
+                <Button variant="ghost" size="sm">
+                  Dashboard
+                </Button>
+              </Link>
+            ) : (
+              <Link href="/auth/login" className="hidden sm:inline-flex">
+                <Button variant="ghost" size="sm">
+                  Member Login
+                </Button>
+              </Link>
+            )}
             <Link href="/auth/register">
               <Button size="sm">Join Us</Button>
             </Link>
@@ -135,12 +152,25 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
               </Link>
             ))}
             <div className="mt-4 pt-4 border-t border-border flex flex-col gap-2">
-              <Link href="/auth/login" onClick={() => setOpen(false)}>
-                <Button variant="ghost" className="w-full justify-start">Member Login</Button>
-              </Link>
-              <Link href="/auth/register" onClick={() => setOpen(false)}>
-                <Button className="w-full">Join Us</Button>
-              </Link>
+              {isLoggedIn ? (
+                <>
+                  <Link href="/dashboard" onClick={() => setOpen(false)}>
+                    <Button variant="ghost" className="w-full justify-start">Dashboard</Button>
+                  </Link>
+                  <Button variant="ghost" className="w-full justify-start" onClick={() => signOut({ callbackUrl: "/" })}>
+                    Sign out
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Link href="/auth/login" onClick={() => setOpen(false)}>
+                    <Button variant="ghost" className="w-full justify-start">Member Login</Button>
+                  </Link>
+                  <Link href="/auth/register" onClick={() => setOpen(false)}>
+                    <Button className="w-full">Join Us</Button>
+                  </Link>
+                </>
+              )}
             </div>
           </nav>
         </SheetContent>

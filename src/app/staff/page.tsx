@@ -15,7 +15,7 @@ export default async function StaffPage() {
     where: {
       isActive: true,
       role: {
-        in: ["OWNER", "ADMIN", "EDITOR", "TREASURER", "MINISTRY_LEAD", "STANDARD_STAFF"],
+        in: ["SUPER_ADMIN", "ADMIN", "PASTOR", "ELDER", "DEACON", "MINISTRY_LEAD", "COUNSELOR"],
       },
     },
     orderBy: { name: "asc" },

@@ -5,21 +5,19 @@ import { prisma } from "@/lib/db/client";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import type { Role } from "@prisma/client";
-
-const RegisterSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters"),
-  email: z.string().email("Invalid email address"),
-  password: z
-    .string()
-    .min(8, "Password must be at least 8 characters")
-    .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
-    .regex(/[0-9]/, "Password must contain at least one number"),
-  phone: z.string().optional().or(z.literal("")),
-});
+import { logAudit } from "@/lib/actions/audit";
+import { signIn } from "@/lib/auth";
+import {
+  registerSchema,
+  forgotPasswordSchema,
+  resetPasswordSchema,
+} from "@/lib/validators/auth";
 
 export type RegisterState = {
   success?: boolean;
   message?: string;
+  email?: string;
+  password?: string;
   errors?: Record<string, string[]>;
 };
 
@@ -28,7 +26,7 @@ export async function register(
   formData: FormData
 ): Promise<RegisterState> {
   try {
-    const parsed = RegisterSchema.safeParse(Object.fromEntries(formData));
+    const parsed = registerSchema.safeParse(Object.fromEntries(formData));
     if (!parsed.success) {
       return {
         success: false,
@@ -44,32 +42,29 @@ export async function register(
       return { success: false, message: "An account with that email already exists" };
     }
 
+    // First person to sign up becomes SUPER_ADMIN
+    const userCount = await prisma.user.count();
+    const isFirstUser = userCount === 0;
+
     const hashed = await bcrypt.hash(password, 12);
     const user = await prisma.user.create({
       data: {
         name,
         email,
         password: hashed,
-        role: "GUEST" as Role,
+        role: isFirstUser ? ("SUPER_ADMIN" as Role) : ("GUEST" as Role),
         provider: "credentials",
         phone: phone || undefined,
+        lastLoginAt: new Date(),
+        loginCount: 1,
       },
       select: { id: true, name: true, email: true, role: true },
     });
 
-    await prisma.auditLog.create({
-      data: {
-        action: "USER_CREATED",
-        targetId: user.id,
-        targetName: user.name,
-        actorId: user.id,
-        actorName: user.name,
-        details: { provider: "credentials" } as any,
-      },
-    });
+    await logAudit("USER_CREATED", user.id, user.name, { provider: "credentials" });
 
     revalidatePath("/auth/register");
-    return { success: true, message: "Account created successfully" };
+    return { success: true, message: "Account created successfully", email, password };
   } catch (error) {
     return {
       success: false,
@@ -83,10 +78,16 @@ export async function forgotPassword(
   formData: FormData
 ): Promise<RegisterState> {
   try {
-    const email = formData.get("email") as string;
-    if (!email) {
-      return { success: false, message: "Email is required" };
+    const parsed = forgotPasswordSchema.safeParse(Object.fromEntries(formData));
+    if (!parsed.success) {
+      return {
+        success: false,
+        message: "Validation failed",
+        errors: parsed.error.flatten().fieldErrors as Record<string, string[]>,
+      };
     }
+
+    const { email } = parsed.data;
 
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
@@ -104,15 +105,7 @@ export async function forgotPassword(
       data: { identifier: email, token, expires },
     });
 
-    await prisma.auditLog.create({
-      data: {
-        action: "PASSWORD_RESET_REQUESTED",
-        targetId: user.id,
-        targetName: user.name,
-        actorId: user.id,
-        actorName: user.name,
-      },
-    });
+    await logAudit("PASSWORD_RESET_REQUESTED", user.id, user.name);
 
     return {
       success: true,
@@ -131,17 +124,16 @@ export async function resetPassword(
   formData: FormData
 ): Promise<RegisterState> {
   try {
-    const email = formData.get("email") as string;
-    const token = formData.get("token") as string;
-    const password = formData.get("password") as string;
-
-    if (!email || !token || !password) {
-      return { success: false, message: "Email, token, and password are required" };
+    const parsed = resetPasswordSchema.safeParse(Object.fromEntries(formData));
+    if (!parsed.success) {
+      return {
+        success: false,
+        message: "Validation failed",
+        errors: parsed.error.flatten().fieldErrors as Record<string, string[]>,
+      };
     }
 
-    if (password.length < 8) {
-      return { success: false, message: "Password must be at least 8 characters" };
-    }
+    const { email, token, password } = parsed.data;
 
     const verification = await prisma.verificationToken.findUnique({
       where: { token },
@@ -164,15 +156,7 @@ export async function resetPassword(
 
     await prisma.verificationToken.delete({ where: { token } });
 
-    await prisma.auditLog.create({
-      data: {
-        action: "PASSWORD_RESET",
-        targetId: user.id,
-        targetName: user.name,
-        actorId: user.id,
-        actorName: user.name,
-      },
-    });
+    await logAudit("PASSWORD_RESET", user.id, user.name);
 
     revalidatePath("/auth/reset-password");
     return { success: true, message: "Password reset successfully" };

@@ -35,6 +35,15 @@ export const authOptions: NextAuthConfig = {
           throw new Error("Invalid email or password");
         }
 
+        // Update login tracking
+        await prisma.user.update({
+          where: { id: user.id },
+          data: {
+            lastLoginAt: new Date(),
+            loginCount: { increment: 1 },
+          },
+        });
+
         return {
           id: user.id,
           name: user.name,
@@ -59,12 +68,19 @@ export const authOptions: NextAuthConfig = {
               photo: user.image ?? undefined,
               role: "GUEST" as Role,
               provider: "google",
+              lastLoginAt: new Date(),
+              loginCount: 1,
             },
           });
-        } else if (!existing.provider || existing.provider === "credentials") {
+        } else {
           await prisma.user.update({
             where: { email: user.email },
-            data: { provider: "google", photo: user.image ?? existing.photo ?? undefined },
+            data: {
+              provider: "google",
+              photo: user.image ?? existing.photo ?? undefined,
+              lastLoginAt: new Date(),
+              loginCount: { increment: 1 },
+            },
           });
         }
       }
@@ -99,3 +115,5 @@ export const authOptions: NextAuthConfig = {
 const nextAuthInstance = NextAuth(authOptions);
 export const handlers = nextAuthInstance.handlers;
 export const auth = nextAuthInstance.auth;
+export const signIn = nextAuthInstance.signIn;
+export const signOut = nextAuthInstance.signOut;

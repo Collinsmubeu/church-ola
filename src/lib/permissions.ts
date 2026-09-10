@@ -4,12 +4,13 @@ export { Role };
 
 // Role hierarchy: lower index = higher privilege
 export const ROLE_HIERARCHY: Role[] = [
-  "OWNER",
+  "SUPER_ADMIN",
   "ADMIN",
-  "EDITOR",
-  "TREASURER",
+  "PASTOR",
+  "ELDER",
+  "DEACON",
   "MINISTRY_LEAD",
-  "STANDARD_STAFF",
+  "COUNSELOR",
   "MEMBER",
   "GUEST",
 ];
@@ -20,48 +21,48 @@ export const PERMISSIONS: Record<string, Role> = {
   "user:create": "ADMIN",
   "user:edit": "ADMIN",
   "user:delete": "ADMIN",
-  "user:changeRole": "ADMIN",
+  "user:changeRole": "SUPER_ADMIN",
   "settings:edit": "ADMIN",
-  "audit:view": "ADMIN",
-  "role:manage": "ADMIN",
+  "audit:view": "SUPER_ADMIN",
+  "role:manage": "SUPER_ADMIN",
 
-  // Editor / Content Manager
-  "content:create": "EDITOR",
-  "content:edit": "EDITOR",
-  "content:delete": "EDITOR",
-  "sermon:upload": "EDITOR",
-  "sermon:edit": "EDITOR",
-  "sermon:delete": "EDITOR",
-  "event:create": "EDITOR",
-  "event:edit": "EDITOR",
-  "event:delete": "EDITOR",
-  "announcement:publish": "EDITOR",
+  // Pastor / Content Manager
+  "content:create": "PASTOR",
+  "content:edit": "PASTOR",
+  "content:delete": "SUPER_ADMIN",
+  "sermon:upload": "PASTOR",
+  "sermon:edit": "PASTOR",
+  "sermon:delete": "SUPER_ADMIN",
+  "event:create": "PASTOR",
+  "event:edit": "PASTOR",
+  "event:delete": "SUPER_ADMIN",
+  "announcement:publish": "PASTOR",
 
-  // Treasurer / Finance
-  "giving:viewAll": "TREASURER",
-  "giving:export": "TREASURER",
-  "giving:refund": "TREASURER",
-  "reports:financial": "TREASURER",
+  // Elder / Deacon
+  "member:viewProfile": "ELDER",
+  "member:editProfile": "DEACON",
+  "member:export": "ELDER",
+  "event:register:self": "MEMBER",
+  "communication:send": "DEACON",
+  "member:viewDirectory": "ELDER",
+  "giving:viewAll": "ELDER",
+  "giving:export": "ELDER",
 
-  // Ministry / Group Leader
+  // Ministry Lead
   "group:viewRoster": "MINISTRY_LEAD",
   "group:addMember": "MINISTRY_LEAD",
   "group:removeMember": "MINISTRY_LEAD",
   "group:sendMessage": "MINISTRY_LEAD",
   "checkin:manage": "MINISTRY_LEAD",
 
-  // Standard Staff
-  "member:viewProfile": "STANDARD_STAFF",
-  "member:editProfile": "STANDARD_STAFF",
-  "member:export": "STANDARD_STAFF",
-  "event:register": "STANDARD_STAFF",
-  "communication:send": "STANDARD_STAFF",
-  "member:viewDirectory": "STANDARD_STAFF",
+  // Counselor
+  "care:notes": "COUNSELOR",
+  "care:view": "COUNSELOR",
+  "care:edit": "COUNSELOR",
 
   // Member (self-service)
   "profile:edit": "MEMBER",
   "giving:make": "MEMBER",
-  "event:register:self": "MEMBER",
   "sermon:view": "MEMBER",
   "sermon:download": "MEMBER",
   "directory:view": "MEMBER",

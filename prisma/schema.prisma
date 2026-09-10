@@ -21,6 +21,8 @@ model User {
   isPastor      Boolean       @default(false)
   isActive      Boolean       @default(true)
   provider      String        @default("credentials") // "credentials" | "google"
+  lastLoginAt   DateTime?
+  loginCount    Int           @default(0)
   events        Event[]
   donations     Donation[]
   volunteerRoles VolunteerRole[]
@@ -158,12 +160,13 @@ model VolunteerRole {
 }
 
 enum Role {
-  OWNER
+  SUPER_ADMIN
   ADMIN
-  EDITOR
-  TREASURER
+  PASTOR
+  ELDER
+  DEACON
   MINISTRY_LEAD
-  STANDARD_STAFF
+  COUNSELOR
   MEMBER
   GUEST
 }

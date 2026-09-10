@@ -85,6 +85,10 @@ export async function changeRole(
   }
 }
 
+export async function changeRoleAction(formData: FormData): Promise<ChangeRoleState> {
+  return changeRole(null, formData);
+}
+
 export async function logAudit(
   action: string,
   targetId: string,
