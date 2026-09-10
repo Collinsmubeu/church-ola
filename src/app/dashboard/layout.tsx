@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import { auth } from "@/lib/auth/auth";
+import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { DashboardSidebar } from "@/components/layouts/DashboardSidebar";
 
