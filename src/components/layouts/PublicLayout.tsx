@@ -13,7 +13,9 @@ const navLinks = [
   { href: "/about", label: "About" },
   { href: "/events", label: "Events" },
   { href: "/sermons", label: "Sermons" },
-  { href: "/auth/register", label: "Give" },
+  { href: "/give", label: "Give" },
+  { href: "/ministries", label: "Ministries" },
+  { href: "/staff", label: "Staff" },
 ];
 
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
@@ -90,7 +92,10 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
               <ul className="space-y-2 text-sm text-muted-foreground">
                 <li><Link href="/events" className="hover:text-foreground">Events</Link></li>
                 <li><Link href="/sermons" className="hover:text-foreground">Sermons</Link></li>
-                <li><Link href="/about" className="hover:text-foreground">About</Link></li>
+                <li><Link href="/give" className="hover:text-foreground">Give</Link></li>
+                <li><Link href="/ministries" className="hover:text-foreground">Ministries</Link></li>
+                <li><Link href="/staff" className="hover:text-foreground">Staff</Link></li>
+                <li><Link href="/privacy" className="hover:text-foreground">Privacy</Link></li>
               </ul>
             </div>
             <div>
