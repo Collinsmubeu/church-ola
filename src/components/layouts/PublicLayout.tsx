@@ -68,9 +68,11 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
                 </Button>
               </Link>
             )}
-            <Link href="/auth/register">
-              <Button size="sm">Join Us</Button>
-            </Link>
+            {!isLoggedIn && (
+              <Link href="/auth/register">
+                <Button size="sm">Join Us</Button>
+              </Link>
+            )}
             <Button
               variant="ghost"
               size="icon"
