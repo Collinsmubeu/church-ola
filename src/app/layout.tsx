@@ -1,29 +1,19 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Noto_Sans, Playfair_Display } from "next/font/google";
+import { Inter, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/providers";
 import { cn } from "@/lib/utils";
 
-const playfairDisplayHeading = Playfair_Display({
+const inter = Inter({
   subsets: ["latin"],
-  variable: "--font-heading",
+  variable: "--font-inter",
   display: "swap",
 });
 
-const notoSans = Noto_Sans({
+const playfairDisplay = Playfair_Display({
   subsets: ["latin"],
-  variable: "--font-sans",
+  variable: "--font-playfair",
   display: "swap",
-});
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
@@ -47,13 +37,7 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={cn(
-        "h-full antialiased",
-        geistSans.variable,
-        geistMono.variable,
-        notoSans.variable,
-        playfairDisplayHeading.variable
-      )}
+      className={cn("h-full antialiased", inter.variable, playfairDisplay.variable)}
     >
       <body className="min-h-full flex flex-col font-sans">
         <Providers>{children}</Providers>

@@ -1,12 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
-import { Church, Menu, X } from "lucide-react";
-import { Suspense, useEffect } from "react";
+import { Church, Menu, X, LogOut } from "lucide-react";
+import { Suspense } from "react";
 import { useSession, signOut } from "next-auth/react";
 
 const navLinks = [
@@ -160,7 +160,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
                     <Button variant="ghost" className="w-full justify-start">Dashboard</Button>
                   </Link>
                   <Button variant="ghost" className="w-full justify-start" onClick={() => signOut({ callbackUrl: "/" })}>
-                    Sign out
+                    <LogOut className="size-4 mr-2" /> Sign out
                   </Button>
                 </>
               ) : (
